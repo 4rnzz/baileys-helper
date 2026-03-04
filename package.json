@@ -1,21 +1,42 @@
 {
-  "name": "Baileys-helpers",
+  "name": "@rnzz/helper",
   "version": "1.0.0",
-  "description": "Simple Helpers Button",
-  "homepage": "https://api.rnzz.site",
-  "keywords": [
-    "Baileys",
-    "WhatsApp"
-  ],
-  "license": "ISC",
-  "author": "XEoms",
-  "type": "commonjs",
+  "description": "WhatsApp button helper for Baileys - Mudah kirim button, list, dan interactive message",
   "main": "export.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/4rnzz/baileys-helper.git"
-  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "whatsapp",
+    "baileys",
+    "button",
+    "interactive",
+    "wa-bot",
+    "whatsapp-bot",
+    "baileys-helper",
+    "sendButton",
+    "interactive-message"
+  ],
+  "author": "4rnzz",
+  "license": "MIT",
+  "dependencies": {
+    "buttons-warpper": "^1.2.0"
+  },
+  "peerDependencies": {
+    "baileys": "^7.0.0-rc.9"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/4rnzz/baileys-helper.git"
+  },
+  "bugs": {
+    "url": "https://github.com/4rnzz/baileys-helper/issues"
+  },
+  "homepage": "https://github.com/4rnzz/baileys-helper#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

@@ -1,228 +1,249 @@
-@rnzz/helper
+# @rnzz/helper
 
-WhatsApp button helper for Baileys. Memudahkan pengiriman pesan button, list, dan interactive message di WhatsApp bot.
+[![npm version](https://img.shields.io/npm/v/@rnzz/helper.svg)](https://www.npmjs.com/package/@rnzz/helper)  
+[![npm downloads](https://img.shields.io/npm/dm/@rnzz/helper.svg)](https://www.npmjs.com/package/@rnzz/helper)  
+[![License](https://img.shields.io/npm/l/@rnzz/helper.svg)](LICENSE)
 
-Fitur
+A lightweight helper for sending WhatsApp interactive messages using Baileys.  
+Built to simplify button, list, and interactive message handling for WhatsApp bots.
 
-· Kirim berbagai tipe button (quick reply, url, copy code, phone call)
-· Kirim list menu (single select)
-· Dukungan externalAdReply
-· Mentions otomatis
-· ContextInfo kustom
-· Handler response button otomatis
+---
 
-Instalasi
+## Overview
+
+`@rnzz/helper` extends the Baileys socket with a convenient `sendButton` method and provides automatic parsing of button responses. It helps reduce boilerplate and keeps your bot handler clean and consistent.
+
+---
+
+## Features
+
+| Feature | Description |
+|--------|-------------|
+| Multiple button support | Quick reply, URL, copy code, and phone call |
+| List menu support | Single-select interactive lists |
+| External ad reply | Built-in rich preview support |
+| Automatic mentions | Mention parsing handled automatically |
+| Custom contextInfo | Full control over message context |
+| Response normalization | Button replies mapped into `m.text` |
+
+---
+
+## Requirements
+
+| Dependency | Version |
+|-----------|---------|
+| Node.js | >= 20 |
+| Baileys | ^7.0.0-rc.9 |
+
+---
+
+## Installation
+
+Install the helper:
 
 ```bash
 npm install @rnzz/helper
 ```
 
-Persyaratan
+Install Baileys (if not installed):
 
-· Node.js >= 20
-· Baileys ^7.0.0-rc.9
+```bash
+npm install baileys
+```
 
-Penggunaan Dasar
+---
+
+## Quick Start
+
+### Initialization
 
 ```javascript
-const { ButtonCreate, ButtonResponse } = require('@rnzz/helper');
-const makeWASocket = require('baileys');
+const { ButtonCreate } = require('@rnzz/helper')
+const makeWASocket = require('baileys')
 
-const sock = makeWASocket({ ... });
+const client = makeWASocket({})
 
-// Inisialisasi button helper
-await ButtonCreate(sock);
+ButtonCreate(client)
+```
 
-// Kirim pesan dengan button
-await sock.sendButton('6281234567890@s.whatsapp.net', {
-  text: "Pilih menu:",
-  footer: "Footer pesan",
+---
+
+### Handling Button Responses (Recommended)
+
+Place `ButtonResponse` after your message serialization (`smsg`) and before your main handler.
+
+```javascript
+const { ButtonResponse } = require('@rnzz/helper')
+
+sock.ev.on('messages.upsert', async (chatUpdate) => {
+  const mek = chatUpdate.messages[0]
+  if (!mek.message) return
+
+  const m = smsg(client, mek, {})
+
+  ButtonResponse(m)
+
+  require('./XEoms')(client, m, chatUpdate)
+})
+```
+
+This ensures all button and list replies are normalized into `m.text`.
+
+---
+
+## Usage Examples
+
+### Basic Menu Button
+
+```javascript
+client.sendButton('6281234567890@s.whatsapp.net', {
+  text: 'Please choose a menu below',
+  footer: 'Bot Menu',
   buttons: [
-    { buttonName: "Menu 1", id: "menu1" },
-    { buttonName: "Menu 2", id: "menu2" },
-    { buttonName: "Google", url: "https://google.com" }
+    { buttonName: 'Main Menu', id: 'menu' },
+    { buttonName: 'Owner', id: 'owner' },
+    { buttonName: 'Website', url: 'https://example.com' }
   ]
-});
-
-// Handle response button
-sock.ev.on('messages.upsert', ({ messages }) => {
-  const m = messages[0];
-  ButtonResponse(m);
-  
-  if (m.text === 'menu1') {
-    sock.sendMessage(m.key.remoteJid, { text: 'Kamu memilih Menu 1' });
-  }
-});
+})
 ```
 
-Tipe Button
+---
 
-1. Quick Reply Button
-
-```javascript
-{
-  buttonName: "Tekan Saya",
-  id: "tekan_saya"
-}
-```
-
-2. URL Button
+### Information Message
 
 ```javascript
-{
-  buttonName: "Kunjungi Website",
-  url: "https://example.com"
-}
-```
-
-3. Copy Code Button
-
-```javascript
-{
-  buttonName: "Copy Kode",
-  copy_code: "ABC123XYZ"
-}
-```
-
-4. Phone Call Button
-
-```javascript
-{
-  buttonName: "Hubungi CS",
-  phone_number: "+6281234567890"
-}
-```
-
-5. List Menu (Single Select)
-
-```javascript
-{
-  buttonName: "Pilih Menu",
-  title: "Daftar Menu",
-  rows: [
-    { title: "Nasi Goreng", description: "Nasi goreng spesial", id: "nasi_goreng" },
-    { title: "Mie Goreng", description: "Mie goreng pedas", id: "mie_goreng" }
-  ]
-}
-```
-
-Contoh Lengkap
-
-Button dengan Title dan Subtitle
-
-```javascript
-await sock.sendButton(m.chat, {
-  title: "INFORMASI PENTING",
-  subtitle: "Update Terbaru",
-  text: "Bot telah diupdate ke versi terbaru",
-  footer: "Terima kasih telah menggunakan bot kami",
+client.sendButton(m.chat, {
+  title: 'BOT INFORMATION',
+  subtitle: 'System Update',
+  text: 'The bot is running normally and ready to use.',
+  footer: 'Bot Notification',
   buttons: [
-    { buttonName: "Lihat Changelog", id: "changelog" }
+    { buttonName: 'Check Status', id: 'status' }
   ]
-}, { quoted: m });
+}, { quoted: m })
 ```
 
-Button dengan Mentions
+---
+
+### Menu with Mention
 
 ```javascript
-await sock.sendButton(m.chat, {
-  text: `Halo @${m.sender.split('@')[0]}, silahkan pilih menu:`,
-  footer: "Menu Utama",
+client.sendButton(m.chat, {
+  text: `Hello @${m.sender.split('@')[0]}, select the feature you want to use.`,
+  footer: 'Main Menu',
   buttons: [
-    { buttonName: "Profile", id: "profile" }
+    { buttonName: 'Profile', id: 'profile' }
   ],
   mentions: [m.sender]
-}, { quoted: m });
+}, { quoted: m })
 ```
 
-Button dengan External Ad Reply
+---
+
+### Promotional Message
 
 ```javascript
-await sock.sendButton(m.chat, {
-  text: "Promo Spesial Bulan Ini!",
-  footer: "Klik tombol di bawah",
+client.sendButton(m.chat, {
+  text: 'Special promotion available this week.',
+  footer: 'Limited Offer',
   buttons: [
-    { buttonName: "Beli Sekarang", url: "https://shop.com" }
+    { buttonName: 'Order Now', url: 'https://shop.com' }
   ],
   contextInfo: {
     externalAdReply: {
-      title: "DISKON 50%",
-      body: "Untuk semua produk",
-      thumbnailUrl: "https://example.com/image.jpg",
-      sourceUrl: "https://example.com",
+      title: 'WEEKLY PROMO',
+      body: 'Limited time discount',
+      thumbnailUrl: 'https://example.com/image.jpg',
+      sourceUrl: 'https://example.com',
       mediaType: 1,
       renderLargerThumbnail: true
     }
   }
-}, { quoted: m });
+}, { quoted: m })
 ```
 
-Multiple List Menu
+---
+
+### Category List Menu
 
 ```javascript
-await sock.sendButton(m.chat, {
-  text: "Pilih kategori:",
+client.sendButton(m.chat, {
+  text: 'Select a category below',
   buttons: [
-    { 
-      buttonName: "Kategori Makanan", 
-      title: "Menu Makanan",
+    {
+      buttonName: 'Food Menu',
+      title: 'Food Category',
       rows: [
-        { title: "Makanan Berat", description: "Nasi, mie, dll", id: "makanan_berat" }
+        { title: 'Main Course', description: 'Rice, noodles, etc.', id: 'main_course' }
       ]
     },
-    { 
-      buttonName: "Kategori Minuman", 
-      title: "Menu Minuman",
+    {
+      buttonName: 'Drink Menu',
+      title: 'Drink Category',
       rows: [
-        { title: "Minuman Panas", description: "Kopi, teh", id: "minuman_panas" }
+        { title: 'Hot Drinks', description: 'Coffee, tea', id: 'hot_drinks' }
       ]
     }
   ]
-}, { quoted: m });
+}, { quoted: m })
 ```
 
-Format Singkat (String)
+---
+
+### Short Format
 
 ```javascript
-await sock.sendButton(m.chat, "Pesan sederhana dengan tombol", {
-  buttons: [
-    { buttonName: "OK", id: "ok" },
-    { buttonName: "Cancel", id: "cancel" }
-  ]
-}, { quoted: m });
+client.sendButton(
+  m.chat,
+  'Quick action menu',
+  {
+    buttons: [
+      { buttonName: 'OK', id: 'ok' },
+      { buttonName: 'Cancel', id: 'cancel' }
+    ]
+  },
+  { quoted: m }
+)
 ```
 
+---
 
-API Reference
+## API Reference
 
-ButtonCreate(client, options)
+### ButtonCreate(client, options)
 
-Inisialisasi button helper ke client Baileys.
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| client | object | Yes | Baileys socket instance |
+| options | object | No | Custom configuration |
 
-Parameter Tipe Keterangan
-client object Instance Baileys socket
-options object Opsi kustomisasi (opsional)
+---
 
-ButtonResponse(message)
+### ButtonResponse(message)
 
-Handle response button dan menambahkan property text ke message.
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| message | object | Yes | Baileys message object |
 
-Parameter Tipe Keterangan
-message object Message object dari Baileys
+---
 
-client.sendButton(jid, content, options)
+### client.sendButton(jid, content, options)
 
-Mengirim pesan button.
+| Parameter | Type | Required | Description |
+|----------|------|----------|-------------|
+| jid | string | Yes | Target chat ID |
+| content | object or string | Yes | Message content |
+| options | object | No | Additional Baileys options |
 
-Parameter Tipe Keterangan
-jid string ID chat tujuan
-content object/string Konten pesan dan button
-options object Opsi tambahan (quoted, dll)
+---
 
-Lisensi
+## License
 
 MIT
 
-Kontribusi
+---
 
-Silakan buat issue atau pull request di GitHub Repository.
+## Contributing
+
+Contributions are welcome.  
+Please open an issue or submit a pull request on the repository.

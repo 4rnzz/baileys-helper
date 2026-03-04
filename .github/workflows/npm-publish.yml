@@ -24,7 +24,7 @@ jobs:
           scope: '@rnzz'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Check if version exists
         id: check

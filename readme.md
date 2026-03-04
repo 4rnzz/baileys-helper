@@ -45,12 +45,6 @@ Install the helper:
 npm install @rnzz/helper
 ```
 
-Install Baileys (if not installed):
-
-```bash
-npm install baileys
-```
-
 ---
 
 ## Quick Start
@@ -96,7 +90,7 @@ This ensures all button and list replies are normalized into `m.text`.
 ### Basic Menu Button
 
 ```javascript
-client.sendButton('6281234567890@s.whatsapp.net', {
+client.sendButton(m.chat, {
   text: 'Please choose a menu below',
   footer: 'Bot Menu',
   buttons: [

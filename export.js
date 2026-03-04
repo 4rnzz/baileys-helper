@@ -1,4 +1,4 @@
-const buttons = require('./helpers/buttons');
+const buttons = require('./lib/buttons');
 const pkg = require('./package.json');
 
 const getPackageInfo = () => ({
